@@ -40,11 +40,25 @@ app.get('/aqi', (req, res) => {
   const airNOWkey = process.env.AIRNOW_KEY;
   const airNOWurl = `http://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airNOWkey}`;
 
-  fetch(airNOWurl).then(fetchResult => {if (!fetchResult.ok) {throw Error(fetchResult.status)} return fetchResult.json()})
-      .then(body => {const conditions = body.filter(condition => condition.ParameterName==='PM2.5')[0];res.status(200).send(conditions.AQI.toString())})
-      .catch(err => {res.status(err.message).json({'status':err})});
+  fetch(airNOWurl).then(fetchResult => {
+      if (!fetchResult.ok) {
+        throw Error(fetchResult.status)
+      }
+      return fetchResult.json()})
+      .then(body => {
+        const conditions = body.filter(condition => condition.ParameterName==='PM2.5')[0];
+        if (conditions !== undefined) {
+          console.info(`AQI : ${conditions.AQI}`);
+          res.status(200).send(conditions.AQI.toString())
+        } else {
+          console.error('No conditions returned');
+          throw Error(400);
+        }
+      })
+      .catch(err => {res.status(400).send("No AQI results")});
 });
 
+//
 // Start the server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
