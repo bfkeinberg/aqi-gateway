@@ -46,10 +46,10 @@ app.get('/aqi', (req, res) => {
       }
       return fetchResult.json()})
       .then(body => {
-        const conditions = body.filter(condition => condition.ParameterName==='PM2.5')[0];
+        const conditions = body.reduce( (results, current) => {results[current.ParameterName]=current["AQI"]; return results}, {});
         if (conditions !== undefined) {
-          console.info(`AQI : ${conditions.AQI}`);
-          res.status(200).send(conditions.AQI.toString())
+          console.info(`conditions : ${JSON.stringify(conditions)}`);
+          res.status(200).json(conditions);
         } else {
           console.error('No conditions returned');
           throw Error(400);
