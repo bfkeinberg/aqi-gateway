@@ -10,6 +10,8 @@ jobs:
   steps: 
   - name: Checkout
     uses: actions/checkout@v2.3.3 
+  - name: Latest Gcloud
+    uses: setup-gcloud@latest  
   - name: Initialize Google Cloud SDK
     uses: zxyle/publish-gae-action@master
     with:
