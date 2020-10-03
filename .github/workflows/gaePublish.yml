@@ -1,11 +1,12 @@
 name: Publish to GAE
 
 # Run this workflow every time a new commit pushed to your repository
-on: push
+on: [push, workflow_dispatch]
 
 jobs:
 
  publish:
+  name: Checking out and publishing to App Engine
   runs-on: ubuntu-latest
   steps: 
   - name: Checkout
