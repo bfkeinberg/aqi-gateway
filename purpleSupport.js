@@ -17,6 +17,10 @@ const aqanduAQIFromPM = (pm) => {
     return aqiFromPM(0.778 * pm + 2.65);
 };
 
+const usEPAfromPm = (pm,rh) => {
+    return aqiFromPM(0.534 * pm - 0.0844 * rh + 5.604);
+};
+
 function aqiFromPM(pm) {
 
     if (isNaN(pm)) return "-";
@@ -127,5 +131,5 @@ function calcAQI(Cp, Ih, Il, BPh, BPl) {
 }
 
 module.exports = {
-    calcBoundingBox, aqanduAQIFromPM
+    calcBoundingBox, aqanduAQIFromPM, usEPAfromPm
 }

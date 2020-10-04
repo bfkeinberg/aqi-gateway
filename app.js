@@ -17,7 +17,7 @@
 // [START gae_node_request_example]
 const express = require('express');
 const fetch = require('node-fetch');
-const {calcBoundingBox, aqanduAQIFromPM} = require('./purpleSupport');
+const {calcBoundingBox, aqanduAQIFromPM, usEPAfromPm} = require('./purpleSupport');
 const app = express();
 
 app.get('/', (req, res) => {
@@ -110,9 +110,7 @@ app.get('/purpleair',(req, res) => {
 
   const purpleAirKey = process.env.PURPLE_AIR_KEY;
   const purpleAirUrl =
-      `https://api.purpleair.com/v1/sensors?fields=pm2.5,ozone1&location_type=0&nwlng=${boundingBox[0]}&nwlat=${boundingBox[2]}&selng=${boundingBox[1]}&selat=${boundingBox[3]}&api_key=${purpleAirKey}`;
-
-  console.log(purpleAirUrl);
+      `https://api.purpleair.com/v1/sensors?fields=pm2.5,ozone1,humidity&location_type=0&nwlng=${boundingBox[0]}&nwlat=${boundingBox[2]}&selng=${boundingBox[1]}&selat=${boundingBox[3]}&api_key=${purpleAirKey}`;
 
   fetch(purpleAirUrl).then(fetchResult => {
     if (!fetchResult.ok) {
@@ -122,11 +120,14 @@ app.get('/purpleair',(req, res) => {
     .then(body => {
         let pm25index = body.fields.indexOf('pm2.5');
         let ozoneIndex = body.fields.indexOf('ozone1');
+        let humidityIndex = body.fields.indexOf('humidity');
         const data = body.data[0];
         if (data !== undefined) {
           // average
           const avgPm25 = body.data.reduce((a, b) => a + b[pm25index], 0) / body.data.length;
-          let aqi = aqanduAQIFromPM(avgPm25);
+          const avgHumidity = body.data.reduce((a, b) => a + b[humidityIndex], 0) / body.data.length;
+          console.info(`aqandu is ${aqanduAQIFromPM(avgPm25)}`);
+          let aqi = usEPAfromPm(avgPm25, avgHumidity);
           let conditions = {'PM2.5':aqi, 'O3':data[ozoneIndex]};
           console.info(`conditions : ${JSON.stringify(conditions)}`);
           res.status(200).json(conditions);
@@ -135,7 +136,7 @@ app.get('/purpleair',(req, res) => {
           throw Error(400);
         }
     })
-    .catch(err => {res.status(400).send("No Purple Air results")});
+    .catch(err => {res.status(400).send(`No Purple Air results because : ${err}`)});
 });
 
 //
