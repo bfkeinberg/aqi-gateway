@@ -83,8 +83,15 @@ app.get('/aqi', (req, res) => {
       .then(body => {
         const conditions = body.reduce( (results, current) => {results[current.ParameterName]=current["AQI"]; return results}, {});
         if (conditions !== undefined) {
-          console.info(`conditions : ${JSON.stringify(conditions)}`);
-          res.status(200).json(conditions);
+            console.info(`conditions : ${JSON.stringify(conditions)}`);
+            if (Object.keys(conditions).length===0) {
+                let query = req.originalUrl.slice(req.originalUrl.indexOf('?'));
+                console.log(`redirecting to /purpleair${query}`);
+                res.redirect(301, `/purpleair${query}`);
+            }
+            else {
+                res.status(200).json(conditions);
+            }
         } else {
           console.error('No conditions returned');
           throw Error(400);
