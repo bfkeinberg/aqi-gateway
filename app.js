@@ -84,7 +84,7 @@ app.get('/aqi', (req, res) => {
         const conditions = body.reduce( (results, current) => {results[current.ParameterName]=current["AQI"]; return results}, {});
         if (conditions !== undefined) {
             console.info(`conditions : ${JSON.stringify(conditions)}`);
-            if (Object.keys(conditions).length===0) {
+            if (Object.keys(conditions).length===0 || !conditions.hasOwnProperty("PM2.5")) {
                 let query = req.originalUrl.slice(req.originalUrl.indexOf('?'));
                 console.log(`redirecting to /purpleair${query}`);
                 res.redirect(301, `/purpleair${query}`);
@@ -97,7 +97,7 @@ app.get('/aqi', (req, res) => {
           throw Error(400);
         }
       })
-      .catch(err => {res.status(400).send("No AQI results")});
+      .catch(err => {res.status(400).send(`No AQI results because : ${err}`)});
 });
 
 app.get('/purpleair',(req, res) => {
