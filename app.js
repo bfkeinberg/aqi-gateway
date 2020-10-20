@@ -93,7 +93,7 @@ app.get('/aqi', (req, res) => {
                 res.status(200).json(conditions);
             }
         } else {
-          console.error('No conditions returned');
+          console.error('No conditions returned from AirNow');
           throw Error(400);
         }
       })
@@ -139,8 +139,10 @@ app.get('/purpleair',(req, res) => {
           console.info(`conditions : ${JSON.stringify(conditions)}`);
           res.status(200).json(conditions);
         } else {
-          console.error('No conditions returned');
-          throw Error(400);
+            console.error('No conditions returned from Purple Air');
+            let query = req.originalUrl.slice(req.originalUrl.indexOf('?'));
+            console.log(`redirecting to /iqair${query}`);
+            res.redirect(301, `/iqair${query}`);
         }
     })
     .catch(err => {res.status(400).send(`No Purple Air results because : ${err}`)});
