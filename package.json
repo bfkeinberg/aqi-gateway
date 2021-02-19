@@ -17,6 +17,8 @@
     "test": "mocha --exit test/*.test.js"
   },
   "dependencies": {
+    "@google-cloud/datastore": "^6.3.1",
+    "crypto": "^1.0.1",
     "express": "^4.16.3",
     "node-fetch": "^2.6.0"
   },

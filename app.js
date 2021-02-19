@@ -17,11 +17,66 @@
 // [START gae_node_request_example]
 const express = require('express');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 const {calcBoundingBox, aqanduAQIFromPM, usEPAfromPm} = require('./purpleSupport');
 const app = express();
+app.enable('trust proxy');
+
+const {Datastore} = require('@google-cloud/datastore');
+
+// Instantiate a datastore client
+const datastore = new Datastore();
+
+/**
+ * Insert a visit record into the database.
+ *
+ * @param {object} visit The visit record to insert.
+ */
+const insertVisit = (visit, sysId) => {
+  if (sysId === undefined) {
+        return null;
+  }
+  return datastore.save({
+    key: datastore.key(['Device', sysId]),
+    data: visit,
+  });
+};
+
+/**
+ * Retrieve the latest 10 visit records from the database.
+ */
+const getVisits = () => {
+  const query = datastore
+    .createQuery('Device')
+    .order('timestamp', {descending: true});
+
+  return datastore.runQuery(query);
+};
 
 app.get('/', (req, res) => {
   res.status(200).send('Hello, world!').end();
+});
+
+const makeVisit = (req) => {
+    // Create a visit record to be stored in the database
+    return {
+      timestamp: new Date(),
+      latitude: req.query.lat,
+      longitude: req.query.lon,
+      model: req.query.device
+      };
+}
+
+app.get('/dbquery', async (req, res) => {
+    const [entities] = await getVisits();
+    const visits = entities.map(
+        entity => `Time: ${entity.timestamp}, Model: ${entity.model} Latitude: ${entity.latitude} Longitude:${entity.longitude}`
+      );
+    res
+       .status(200)
+       .set('Content-Type', 'text/plain')
+       .send(`Last 10 visits:\n${visits.join('\n')}`)
+       .end();
 });
 
 app.get('/iqair', (req, res) => {
@@ -37,6 +92,7 @@ app.get('/iqair', (req, res) => {
     return;
   }
 
+  insertVisit(makeVisit(req), req.query.sysId);
   const iqAirkey = process.env.IQAIR_KEY;
   const iqAirurl = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${iqAirkey}`;
 
@@ -74,7 +130,7 @@ app.get('/aqi', (req, res) => {
 
   const airNOWkey = process.env.AIRNOW_KEY;
   const airNOWurl = `http://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airNOWkey}`;
-
+    
   fetch(airNOWurl).then(fetchResult => {
       if (!fetchResult.ok) {
         throw Error(fetchResult.status)
@@ -90,6 +146,7 @@ app.get('/aqi', (req, res) => {
                 res.redirect(301, `/purpleair${query}`);
             }
             else {
+                insertVisit(makeVisit(req), req.query.sysId);
                 res.status(200).json(conditions);
             }
         } else {
@@ -137,6 +194,7 @@ app.get('/purpleair',(req, res) => {
           let aqi = usEPAfromPm(avgPm25, avgHumidity);
           let conditions = {'PM2.5':aqi, 'O3':data[ozoneIndex]};
           console.info(`conditions : ${JSON.stringify(conditions)}`);
+          insertVisit(makeVisit(req), req.query.sysId);
           res.status(200).json(conditions);
         } else {
             console.error('No conditions returned from Purple Air');
