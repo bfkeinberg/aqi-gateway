@@ -17,10 +17,11 @@
 // [START gae_node_request_example]
 const express = require('express');
 const fetch = require('node-fetch');
-const crypto = require('crypto');
+const cors = require('cors');
 const {calcBoundingBox, aqanduAQIFromPM, usEPAfromPm} = require('./purpleSupport');
 const app = express();
 app.enable('trust proxy');
+app.use(cors());
 
 const {Datastore} = require('@google-cloud/datastore');
 
