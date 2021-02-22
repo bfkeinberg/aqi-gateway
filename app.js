@@ -76,7 +76,7 @@ app.get('/dbquery', async (req, res) => {
     res
        .status(200)
        .set('Content-Type', 'text/plain')
-       .send(`[\n${visits.join('\n')}]`)
+       .send(`[\n${visits.join(',\n')}]`)
        .end();
 });
 
