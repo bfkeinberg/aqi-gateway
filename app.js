@@ -71,7 +71,7 @@ const makeVisit = (req) => {
 app.get('/dbquery', async (req, res) => {
     const [entities] = await getVisits();
     const visits = entities.map(
-        entity => `{"Time": "${entity.timestamp}", "Model": "${entity.model}" "Latitude": "${entity.latitude}" "Longitude":"${entity.longitude}"}`
+        entity => `{"Time": "${entity.timestamp}", "Model": "${entity.model}", "Latitude": "${entity.latitude}", "Longitude":"${entity.longitude}"}`
       );
     res
        .status(200)
