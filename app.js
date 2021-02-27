@@ -37,6 +37,9 @@ const insertVisit = (visit, sysId) => {
   if (sysId === undefined) {
         return null;
   }
+    if (visit.Latitude == "0.0" || visit.Latitude == "0.000000" || visit.Latitude == "179.99999991618097") {
+        return null;
+    }
   return datastore.save({
     key: datastore.key(['Device', sysId]),
     data: visit,
