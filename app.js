@@ -34,16 +34,17 @@ const datastore = new Datastore();
  * @param {object} visit The visit record to insert.
  */
 const insertVisit = (visit, sysId) => {
-  if (sysId === undefined) {
-        return null;
-  }
-    if (visit.Latitude == "0.0" || visit.Latitude == "0.000000" || visit.Latitude == "179.99999991618097") {
+    if (sysId === undefined) {
         return null;
     }
-  return datastore.save({
+    if (visit.Latitude === "0.0" || visit.Latitude === "0" || visit.Latitude === "0.000000" || visit.Latitude === "179.99999991618097") {
+        return null;
+    }
+    console.log(`Adding record for ${sysId} at latitude ${visit.Latitude}`);
+    return datastore.save({
     key: datastore.key(['Device', sysId]),
     data: visit,
-  });
+    });
 };
 
 /**
